@@ -38,6 +38,7 @@ class produto(Base):
 #qualidade em estoque
 estoque = Column(Float)
 
+ativo = Column(Boolean)
 
 #metodo construtor 
 def __init__(self, nome, preco, estoque, ativo):
@@ -56,3 +57,26 @@ engine = create_engine("sqlite:///estoque.db", echo=True)
 #criar as tabelas no banco se ainda nao existirem
 Base.metadata.create_all(engine)
 
+
+#criar uma fabrica de sessões conectadas ao banco 
+session = sessionmaker()
+# criar objeto produtos
+produto1 = produto("Notebook", 5500, 6, True)
+produto2 = produto("teclaco", 500, 100, True)
+
+#adicionar os produtos na sessão (carrinho)
+session.add(produto1)
+session.add(produto2)
+
+#confirmar a inserção no banco 
+#salvar no banco de dados
+session.commit()
+
+# Listar
+#Buscar todos os produtos do banco
+produtos = session.query(Produto).all()
+
+print(produtos)
+
+for p in produtos:
+    print(f"id={p.id}, nome={p.nome}, preco={p.preco}, estoque={p.estoque}, ativo={p.ativo}")
