@@ -18,7 +18,7 @@ Base = declarative_base()
 # Atributos = Coluna
 
 #classe produto represetando uma tabela no banco de dados 
-class produto(Base):
+class Produto(Base):
 
     __tablename__ = "produtos"
 
@@ -35,21 +35,21 @@ class produto(Base):
     #float : numero decimal 
     preco = Column(Float)
 
-#qualidade em estoque
-estoque = Column(Float)
+    #qualidade em estoque
+    estoque = Column(Float)
 
-ativo = Column(Boolean)
+    ativo = Column(Boolean)
 
-#metodo construtor 
-def __init__(self, nome, preco, estoque, ativo):
+    #metodo construtor 
+    def __init__(self, nome, preco, estoque, ativo):
         self.nome = nome
         self.preco = preco
         self.estoque = estoque
         self.ativo = ativo
 
-#representacao do objeto para imprimir
-def __repr__(self):
-        return f"produto(id={self.id}, nome={self.nome}, preco={self.preco}, estoque{self.estoque}, ativo{self.ativo} )"
+    #representacao do objeto para imprimir
+    def __repr__(self):
+        return f"Produto(id={self.id}, nome={self.nome}, preco={self.preco}, estoque{self.estoque}, ativo{self.ativo} )"
     
 #criar a conexão com sqlite
 engine = create_engine("sqlite:///estoque.db", echo=True)
@@ -59,24 +59,67 @@ Base.metadata.create_all(engine)
 
 
 #criar uma fabrica de sessões conectadas ao banco 
-session = sessionmaker()
-# criar objeto produtos
-produto1 = produto("Notebook", 5500, 6, True)
-produto2 = produto("teclaco", 500, 100, True)
+Session = sessionmaker(bind=engine)
 
-#adicionar os produtos na sessão (carrinho)
+session = Session()
+
+# criar objeto Produtos
+produto1 = Produto("Notebook", 5500, 6, True)
+produto2 = Produto("Teclado", 500, 100, True)
+produto3 = Produto("Mouse", 150, 55, True)
+
+# Adicionar os produtos na sessão (carrinho)
 session.add(produto1)
 session.add(produto2)
+session.add(produto3)
 
-#confirmar a inserção no banco 
-#salvar no banco de dados
+# Confirmar a inserção no banco
+# Salvar no banco de dados
 session.commit()
 
 # Listar
-#Buscar todos os produtos do banco
-produtos = session.query(Produto).all()
+# Buscar todos os produtos do banco
+Produtos = session.query(Produto).all()
 
-print(produtos)
+print(Produtos)
+
+for p in Produtos:
+    print(f"id={p.id}, nome={p.nome}, preco={p.preco}, estoque={p.estoque}, ativo={p.ativo}")
+
+# UPDATE (atualizar)
+
+#Buscar o produto com id = 1
+produto_id = session.query(Produto).filter(Produto.id == 1).first()
+# print(produto_id)
+
+produto_estoque = session.query(Produto).filter(Produto.estoque >= 10).all()
+# for produto in produto_estoque:
+#     print(produto.estoque)
+
+produto_id2 = session.query(Produto).filter_by(id=1).first()
+# print(produto_id2)
+
+# Podemos usar order by
+produtos_organizados = session.query(Produto).order_by(Produto.estoque).all()
+produtos_organizados2 = session.query(Produto).order_by(Produto.estoque.desc()).all()
+# for produto in produtos_organizados:
+#     print(f"Nome: {produto.nome}, Qtd_estoque: {produto.estoque}")
+
+#Limitar a quantidade de resultado - tops produtos mais
+produtos_mais_caros = session.query(Produto).order_by(Produto.estoque).limit(5).all()
+for produto in produtos_mais_caros:
+    print(f"Nome: {produto.nome}, Valor: {produto.preco}")
+
+# Update - Atualizar
+#Busquei o produto para atualizar
+notebook = session.query(Produto).filter_by(id=1).first()
+notebook.preco = 6000
+
+#Confirmar essa alteração
+session.commit()
+print("Preço atualizado com sucesso")
+
+produtos = session.query(Produto).all()
 
 for p in produtos:
     print(f"id={p.id}, nome={p.nome}, preco={p.preco}, estoque={p.estoque}, ativo={p.ativo}")
